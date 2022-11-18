@@ -24,20 +24,24 @@
  * __m256d _mm256_cmp_pd (__m256d a, __m256d b, const int imm8)
  * __m256d _mm256_and_pd (__m256d a, __m256d b)
  * __m256d _mm256_max_pd (__m256d a, __m256d b)
-*/
+ */
 
 /* Generates a random double between low and high */
-double rand_double(double low, double high) {
+double rand_double(double low, double high)
+{
     double range = (high - low);
     double div = RAND_MAX / range;
     return low + (rand() / div);
 }
 
 /* Generates a random matrix */
-void rand_matrix(matrix *result, unsigned int seed, double low, double high) {
+void rand_matrix(matrix *result, unsigned int seed, double low, double high)
+{
     srand(seed);
-    for (int i = 0; i < result->rows; i++) {
-        for (int j = 0; j < result->cols; j++) {
+    for (int i = 0; i < result->rows; i++)
+    {
+        for (int j = 0; j < result->cols; j++)
+        {
             set(result, i, j, rand_double(low, high));
         }
     }
@@ -47,16 +51,20 @@ void rand_matrix(matrix *result, unsigned int seed, double low, double high) {
  * Returns the double value of the matrix at the given row and column.
  * You may assume `row` and `col` are valid. Note that the matrix is in row-major order.
  */
-double get(matrix *mat, int row, int col) {
+double get(matrix *mat, int row, int col)
+{
     // Task 1.1 TODO
+    return *(mat->data + (row * col * sizeof(double)));
 }
 
 /*
  * Sets the value at the given row and column to val. You may assume `row` and
  * `col` are valid. Note that the matrix is in row-major order.
  */
-void set(matrix *mat, int row, int col, double val) {
+void set(matrix *mat, int row, int col, double val)
+{
     // Task 1.1 TODO
+    *(mat->data + (row * col * sizeof(double))) = val;
 }
 
 /*
@@ -68,17 +76,51 @@ void set(matrix *mat, int row, int col, double val) {
  * call to allocate memory in this function fails.
  * Return 0 upon success.
  */
-int allocate_matrix(matrix **mat, int rows, int cols) {
+int allocate_matrix(matrix **mat, int rows, int cols)
+{
     // Task 1.2 TODO
     // HINTS: Follow these steps.
     // 1. Check if the dimensions are valid. Return -1 if either dimension is not positive.
+    if (rows < 0 || cols < 0)
+    {
+        return -1;
+    }
+
     // 2. Allocate space for the new matrix struct. Return -2 if allocating memory failed.
+    matrix **mat = (matrix **)malloc(sizeof(matrix));
+    if (mat == NULL)
+    {
+        free(mat);
+        return -2;
+    }
+
     // 3. Allocate space for the matrix data, initializing all entries to be 0. Return -2 if allocating memory failed.
+    mat->data = (double *)malloc(rows * cols * sizeof(double));
+    if (mat->data == NULL)
+    {
+        free(mat->data);
+        free(mat);
+        return -2
+    }
+    for (int i = 0; i < rows * cols; i++)
+    {
+        *(mat->data + (i * sizeof(double))) = 0;
+    }
+
     // 4. Set the number of rows and columns in the matrix struct according to the arguments provided.
+    mat->rows = rows;
+    mat->cols = cols;
+
     // 5. Set the `parent` field to NULL, since this matrix was not created from a slice.
+    mat->parent = NULL;
+
     // 6. Set the `ref_cnt` field to 1.
+    mat->ref_cnt = 1;
+
     // 7. Store the address of the allocated matrix struct at the location `mat` is pointing at.
+
     // 8. Return 0 upon success.
+    return 0;
 }
 
 /*
@@ -86,7 +128,8 @@ int allocate_matrix(matrix **mat, int rows, int cols) {
  * or that you free `mat->parent->data` if `mat` is the last existing slice of its parent matrix and its parent
  * matrix has no other references (including itself).
  */
-void deallocate_matrix(matrix *mat) {
+void deallocate_matrix(matrix *mat)
+{
     // Task 1.3 TODO
     // HINTS: Follow these steps.
     // 1. If the matrix pointer `mat` is NULL, return.
@@ -106,7 +149,8 @@ void deallocate_matrix(matrix *mat) {
  * NOTE: Here we're allocating a matrix struct that refers to already allocated data, so
  * there is no need to allocate space for matrix data.
  */
-int allocate_matrix_ref(matrix **mat, matrix *from, int offset, int rows, int cols) {
+int allocate_matrix_ref(matrix **mat, matrix *from, int offset, int rows, int cols)
+{
     // Task 1.4 TODO
     // HINTS: Follow these steps.
     // 1. Check if the dimensions are valid. Return -1 if either dimension is not positive.
@@ -122,7 +166,8 @@ int allocate_matrix_ref(matrix **mat, matrix *from, int offset, int rows, int co
 /*
  * Sets all entries in mat to val. Note that the matrix is in row-major order.
  */
-void fill_matrix(matrix *mat, double val) {
+void fill_matrix(matrix *mat, double val)
+{
     // Task 1.5 TODO
 }
 
@@ -131,7 +176,8 @@ void fill_matrix(matrix *mat, double val) {
  * Return 0 upon success.
  * Note that the matrix is in row-major order.
  */
-int abs_matrix(matrix *result, matrix *mat) {
+int abs_matrix(matrix *result, matrix *mat)
+{
     // Task 1.5 TODO
 }
 
@@ -141,7 +187,8 @@ int abs_matrix(matrix *result, matrix *mat) {
  * Return 0 upon success.
  * Note that the matrix is in row-major order.
  */
-int neg_matrix(matrix *result, matrix *mat) {
+int neg_matrix(matrix *result, matrix *mat)
+{
     // Task 1.5 TODO
 }
 
@@ -151,7 +198,8 @@ int neg_matrix(matrix *result, matrix *mat) {
  * You may assume `mat1` and `mat2` have the same dimensions.
  * Note that the matrix is in row-major order.
  */
-int add_matrix(matrix *result, matrix *mat1, matrix *mat2) {
+int add_matrix(matrix *result, matrix *mat1, matrix *mat2)
+{
     // Task 1.5 TODO
 }
 
@@ -162,7 +210,8 @@ int add_matrix(matrix *result, matrix *mat1, matrix *mat2) {
  * You may assume `mat1` and `mat2` have the same dimensions.
  * Note that the matrix is in row-major order.
  */
-int sub_matrix(matrix *result, matrix *mat1, matrix *mat2) {
+int sub_matrix(matrix *result, matrix *mat1, matrix *mat2)
+{
     // Task 1.5 TODO
 }
 
@@ -173,7 +222,8 @@ int sub_matrix(matrix *result, matrix *mat1, matrix *mat2) {
  * You may assume `mat1`'s number of columns is equal to `mat2`'s number of rows.
  * Note that the matrix is in row-major order.
  */
-int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
+int mul_matrix(matrix *result, matrix *mat1, matrix *mat2)
+{
     // Task 1.6 TODO
 }
 
@@ -184,6 +234,7 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
  * You may assume `mat` is a square matrix and `pow` is a non-negative integer.
  * Note that the matrix is in row-major order.
  */
-int pow_matrix(matrix *result, matrix *mat, int pow) {
+int pow_matrix(matrix *result, matrix *mat, int pow)
+{
     // Task 1.6 TODO
 }
