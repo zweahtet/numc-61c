@@ -209,10 +209,13 @@ int allocate_matrix_ref(matrix **mat, matrix *from, int offset, int rows, int co
 void fill_matrix(matrix *mat, double val)
 {
     // Task 1.5 TODO
+    __m256d vals = _mm256_set1_pd(val);
+
     int index = 0;
     while (index < (mat->cols * mat->rows))
     {
-        mat->data[index] = val;
+        _mm256_storeu_pd(mat->data + index, vals);
+        // mat->data[index] = val;
         index += 1;
     }
 }
@@ -252,6 +255,18 @@ int abs_matrix(matrix *result, matrix *mat)
 int neg_matrix(matrix *result, matrix *mat)
 {
     // Task 1.5 TODO
+    int size = mat->rows * mat->cols;
+    int limit = size / (4 * 4);
+    for (int i = 0; i < limit; i += 4)
+    {
+        __m256d val = _mm256_loadu_pd(mat->data + i);
+        _mm256_storeu_pd(result->data + i, _mm256_mul_pd(val, _mm256_set1_pd(-1.0)));
+    }
+
+    for (int i = limit; i < size; i++)
+    {
+        result->data[i] = -mat->data[i];
+    }
     return 0;
 }
 
@@ -264,12 +279,20 @@ int neg_matrix(matrix *result, matrix *mat)
 int add_matrix(matrix *result, matrix *mat1, matrix *mat2)
 {
     // Task 1.5 TODO
-    int index = 0;
-    while (index < (mat1->rows * mat1->cols))
+    int size = mat1->rows * mat1->cols;
+    int limit = size / (4 * 4);
+    for (int i = 0; i < limit; i += 4)
     {
-        result->data[index] = (mat1->data[index] + mat2->data[index]);
-        index += 1;
+        __m256d val1 = _mm256_loadu_pd(mat1->data + i);
+        __m256d val2 = _mm256_loadu_pd(mat2->data + i);
+        _mm256_storeu_pd(result->data + i, _mm256_add_pd(val1, val2));
     }
+
+    for (int i = limit; i < size; i++)
+    {
+        result->data[i] = mat1->data[i] + mat2->data[i];
+    }
+
     result->rows = mat1->rows;
     result->cols = mat1->cols;
     result->ref_cnt = 0;
@@ -287,16 +310,13 @@ int add_matrix(matrix *result, matrix *mat1, matrix *mat2)
 int sub_matrix(matrix *result, matrix *mat1, matrix *mat2)
 {
     // Task 1.5 TODO
-    int index = 0;
-    while (index < (mat1->rows * mat1->cols))
-    {
-        result->data[index] = (mat1->data[index] - mat2->data[index]);
-        index += 1;
-    }
-    result->rows = mat1->rows;
-    result->cols = mat1->cols;
-    result->ref_cnt = 0;
-    result->parent = NULL;
+    matrix **temp = malloc(sizeof(matrix *));
+    allocate_matrix(temp, mat2->rows, mat2->cols);
+    matrix *t = *temp;
+
+    neg_matrix(t, mat2);
+    add_matrix(result, mat1, t);
+    deallocate_matrix(*temp);
     return 0;
 }
 
